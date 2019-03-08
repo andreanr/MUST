@@ -11,12 +11,17 @@ load_dotenv(find_dotenv())
 # Assign KEYS
 TMDB_KEY = os.environ.get('TMDB_KEY')
 
-def create_empty_tables():
-    """Creates empty csv files with specified columns"""
-    
-    # Movie artists catalog
-    movie_artists = pd.DataFrame(columns=['mo_id', 'name'])
-    movie_artists.to_csv('must_data/movie_artists.csv', index=False)
+# PostgreSQL credentials
+PGDATABASE = os.environ.get('PGDATABASE')
+PGPASSWORD = os.environ.get('PGPASSWORD')
+PGUSER = os.environ.get('PGUSER')
+PGHOST = os.environ.get('PGHOST')
+
+engine = sqlalchemy.create_engine('postgresql://{user}:{password}@{host}/{database}'.format(
+                           host = PGHOST,
+                           database = PGDATABASE,
+                           user = PGUSER,
+                           password = PGPASSWORD))
 
 def get_popular_movie_artists():
     """Get the most popular artist objects from The Movie Database"""
@@ -51,7 +56,10 @@ def create_popular_movie_artists_record(movie_artist):
 
     # Write a new music_release record
     popular_movie_artist = pd.DataFrame([popular_movie_artist], columns=['mo_id', 'name'])
-    popular_movie_artist.to_csv('must_data/movie_artists.csv', mode='a', index=False, header=False)
+    # popular_movie_artist.to_csv('must_data/movie_artists.csv', mode='a', index=False, header=False)
+    db_conn = engine.connect()
+    popular_movie_artist.to_sql('movie_artists', db_conn, index=False, if_exists='append')
+    db_conn.close()
 
 def populate_movie_artists_table():
     """
