@@ -1,7 +1,9 @@
 import json
 import os
+import pdb
 import pandas as pd
 import requests
+import sqlalchemy
 
 from dotenv import load_dotenv, find_dotenv
 
@@ -11,7 +13,17 @@ load_dotenv(find_dotenv())
 
 # Assign KEYS
 SONGKICK_KEY = os.environ.get('SONGKICK_KEY')
+# PostgreSQL credentials
+PGDATABASE = os.environ.get('PGDATABASE')
+PGPASSWORD = os.environ.get('PGPASSWORD')
+PGUSER = os.environ.get('PGUSER')
+PGHOST = os.environ.get('PGHOST')
 
+engine = sqlalchemy.create_engine('postgresql://{user}:{password}@{host}/{database}'.format(
+                           host = PGHOST,
+                           database = PGDATABASE,
+                           user = PGUSER,
+                           password = PGPASSWORD))
 
 # 1. Read artists names
 # 2. Search for artist id
@@ -48,53 +60,72 @@ def get_name_id(artist_name):
     response_id = requests.get(url_artist)
     if(response_id.ok):
         response_id_json = json.loads(response_id.content)
-        artists_info = response_id_json["resultsPage"]["results"]["artist"]
-        artist_ids = [(artist_id['id'], artist_id['displayName']) for artist_id in artists_info]
-        return artist_ids[0]
+        if response_id_json["resultsPage"]["results"]:
+            artists_info = response_id_json["resultsPage"]["results"]["artist"]
+            artist_ids = [(artist_id['id'], artist_id['displayName']) for artist_id in artists_info]
+            print(artist_ids[0])
+            return artist_ids[0]
+    return (None, None)
 
 
 def create_concert_records(event):
     """
     Generate a new concert event on the concerts table
     """
-    new_event = {}
-    new_event['event_id'] = event['id']
-    new_event['event_name'] = event['displayName']
-    new_event['event_date'] = event['start']['datetime']
-    new_event['venue'] = event['venue']['displayName']
-    new_event['city_id'] = create_location_record(event['location']['city'])
-    new_event['url'] = event['uri']
-    new_event['type'] = event['type']
+    print(event.keys())
+    if 'metroArea' in event['venue'].keys():
+        event_id = event['id']
+        db_conn = engine.connect()
+        result = db_conn.execute("SELECT  exists(SELECT event_id FROM concerts WHERE event_id = {})".format(event_id))
+        db_conn.close()
+        result = [r for r in result][0]
+        if not result[0]:
+            new_event = {}
+            new_event['event_id'] = event_id
+            new_event['event_name'] = event['displayName']
+            new_event['event_date'] = event['start']['date']
+            new_event['venue'] = event['venue']['displayName']
+            new_event['city_id'] = create_city_record(event['venue']['metroArea'])
+            new_event['url'] = event['uri']
+            new_event['event_type'] = event['type']
 
-    # Write new event record
-    new_event = pd.DataFrame([new_event],
-                             columns=['event_id', 'event_name', 'event_date',
-                                    'venue', 'city_id', 'url', 'type'])
-    new_event.to_csv('must_data/concerts.csv', mode='a',
-                     index=False, header=False)
-    return event['id']
+            # Write new event record
+            new_event = pd.DataFrame([new_event],
+                                     columns=['event_id', 'event_name', 'event_date',
+                                            'venue', 'city_id', 'url', 'event_type'])
+            # Append to SQL
+            #pdb.set_trace()
+            db_conn = engine.connect()
+            new_event.to_sql('concerts', db_conn, index=False, if_exists='append')
+            db_conn.close()
+            #new_event.to_csv('must_data/concerts.csv', mode='a',
+            #                 index=False, header=False)
+            return event['id']
 
 
-def create_location_record(city_country_name):
-    # Split name into "City, St" and "Country"
-    city_name = ",".join(city_country_name.split(',')[:-1])
-    country = city_country_name.split(',')[-1].strip()
-    # Read location table
-    location = pd.read_csv('must_data/location.csv')
-    # Check if city_name exists
-    check = location[(location['city_name'] == city_name) &
-                     (location['country'] == country)]
-    # If exits return city_id
-    if len(check) > 0:
-        city_id = check['city_id'][0]
-    # If not generate a new location record
-    else:
-        city_id = len(location)
+def create_city_record(location):
+    city_id = location['id']
+    db_conn = engine.connect()
+    result = db_conn.execute("SELECT  exists(SELECT city_id FROM city WHERE city_id = {})".format(city_id))
+    result = [r for r in result][0]
+    if not result[0]:
+        city_name = location['displayName']
+        country = create_country_record(location['country']['displayName'])
         new_location = pd.DataFrame([[city_id, city_name, country]],
                                      columns = ['city_id', 'city_name', 'country'])
-        new_location.to_csv('must_data/location.csv', mode='a',
-                            index=False, header=False)
+        new_location.to_sql('city', db_conn, index=False, if_exists='append')
+    db_conn.close()
     return city_id
+
+def create_country_record(country):
+    db_conn = engine.connect()
+    result = db_conn.execute("SELECT  exists(SELECT country FROM country WHERE country = '{}')".format(country))
+    result = [r for r in result][0]
+    if not result[0]:
+        new_country = pd.DataFrame([country], columns=['country'])
+        new_country.to_sql('country', db_conn, index=False, if_exists='append')
+    db_conn.close()
+    return country
 
 
 def get_event_ids(artist_id):
@@ -109,62 +140,57 @@ def get_event_ids(artist_id):
             return result_events['event']
 
 
-def create_musician_record(artist_id, artist_name):
-    # Read musician table
-    musicians = pd.read_csv('must_data/musicians.csv')
-    # Check if the musician already exists
-    check = musicians[(musicians['sk_id'] == artist_id) &
-                     (musicians['name'] == artist_name)]
-    if len(check) > 0:
-        mu_id = check.index[0]
-    else:
-        mu_id = len(musicians)
-        new_musician = pd.DataFrame([[mu_id, artist_name, artist_id]],
-                                     columns = ['mu_id', 'name', 'sk_id'])
-        new_musician.to_csv('must_data/musicians.csv', mode='a',
-                            index=False, header=False)
-    return mu_id
+def create_musician_record(sp_id, artist_id, artist_name):
+    db_conn = engine.connect()
+    result = db_conn.execute("SELECT  exists(SELECT sk_id FROM musicians WHERE sk_id= '{}')".format(artist_id))
+    result = [r for r in result][0]
+    if not result[0]:
+        new_musician = pd.DataFrame([[sp_id, artist_id, artist_name]],
+                                         columns = ['sp_id', 'sk_id', 'name'])
+        new_musician.to_sql('musicians', db_conn, index=False, if_exists='append')
+    db_conn.close()
 
 
 def concert_performances_record(event_id, mu_id):
     new_concert_performance = pd.DataFrame([[event_id, mu_id]],
-                                          columns = ['event_id','mu_id'])
-    new_concert_performance.to_csv('must_data/concert_performances.csv',
-                                  mode='a', index=False, header=False)
+                                          columns = ['event_id','sk_id'])
+    db_conn = engine.connect()
+    new_concert_performance.to_sql('concert_performances', db_conn, index=False,
+            if_exists='append')
+    db_conn.close()
+    #new_concert_performance.to_csv('must_data/concert_performances.csv',
+    #                              mode='a', index=False, header=False)
 
 
-def populate_all_concert_tables(artist_name):
+def populate_all_concert_tables(sp_id, artist_name):
     # Get artist songkick id given the artist name
-    artist_id, artist_name = get_name_id(artist_name)
-    # Make a new record on musician artist if not exists
-    create_musician_record(artist_id, artist_name)
-    print(artist_id, artist_name)
-    # Get list of events from the artist
-    events = get_event_ids(artist_id)
-    if events:
-        # Loop across all events
-        for event in events:
-            # return event id and populate table
-            event_id = create_concert_records(event)
-            # Get list of performances by the event
-            performances = event['performance']
-            artists_ids = [(p['artist']['id'], p['artist']['displayName']) for p in  performances]
-            for artist_id, artist_name in artists_ids:
-                # Create a new artist record or get mu_id of existing one
-                mu_id = create_musician_record(artist_id, artist_name)
-                # Add a record to concert_performances table
-                concert_performances_record(event_id, mu_id)
+    artist_id, artist_name2 = get_name_id(artist_name)
+    print(artist_id, artist_name2)
+    if artist_id:
+        create_musician_record(sp_id, artist_id, artist_name)
+        # Get list of events from the artist
+        events = get_event_ids(artist_id)
+        if events:
+            # Loop across all events
+            for event in events:
+                print(event)
+                # return event id and populate table
+                event_id = create_concert_records(event)
+                if event_id:
+                    # Add a record to concert_performances table
+                    concert_performances_record(event_id, artist_id)
     else:
         print('No event')
 
 
 if __name__ == "__main__":
     # Create empty csv files
-    create_empty_tables()
+    #create_empty_tables()
     # Read artists names
-    artists_names = open('raw_data/artists_names.csv')
-    for artist_name in artists_names:
-        try:
-            populate_all_concert_tables(artist_name)
-        except:
-            pass
+    #artists_names = ['Foals']
+    artists_names = open('raw_data/musicians.csv')
+    for row in artists_names:
+        row = row.split(',')
+        sp_id = row[0]
+        artist_name = row[1].strip()
+        populate_all_concert_tables(sp_id, artist_name)
