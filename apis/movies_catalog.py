@@ -73,3 +73,6 @@ def populate_movie_artists_table():
             create_popular_movie_artists_record(movie_artist)
     else:
         print('No popular movie_artists')
+
+if __name__ == "__main__":
+    populate_movie_artists_table()
