@@ -63,7 +63,7 @@ def get_name_id(artist_name):
         if response_id_json["resultsPage"]["results"]:
             artists_info = response_id_json["resultsPage"]["results"]["artist"]
             artist_ids = [(artist_id['id'], artist_id['displayName']) for artist_id in artists_info]
-            print(artist_ids[0])
+            #print(artist_ids[0])
             return artist_ids[0]
     return (None, None)
 
@@ -72,7 +72,7 @@ def create_concert_records(event):
     """
     Generate a new concert event on the concerts table
     """
-    print(event.keys())
+    #print(event.keys())
     if 'metroArea' in event['venue'].keys():
         event_id = event['id']
         db_conn = engine.connect()
@@ -94,12 +94,9 @@ def create_concert_records(event):
                                      columns=['event_id', 'event_name', 'event_date',
                                             'venue', 'city_id', 'url', 'event_type'])
             # Append to SQL
-            #pdb.set_trace()
             db_conn = engine.connect()
             new_event.to_sql('concerts', db_conn, index=False, if_exists='append')
             db_conn.close()
-            #new_event.to_csv('must_data/concerts.csv', mode='a',
-            #                 index=False, header=False)
             return event['id']
 
 
@@ -140,17 +137,6 @@ def get_event_ids(artist_id):
             return result_events['event']
 
 
-def create_musician_record(sp_id, artist_id, artist_name):
-    db_conn = engine.connect()
-    result = db_conn.execute("SELECT  exists(SELECT sk_id FROM musicians WHERE sk_id= '{}')".format(artist_id))
-    result = [r for r in result][0]
-    if not result[0]:
-        new_musician = pd.DataFrame([[sp_id, artist_id, artist_name]],
-                                         columns = ['sp_id', 'sk_id', 'name'])
-        new_musician.to_sql('musicians', db_conn, index=False, if_exists='append')
-    db_conn.close()
-
-
 def concert_performances_record(event_id, mu_id):
     new_concert_performance = pd.DataFrame([[event_id, mu_id]],
                                           columns = ['event_id','sk_id'])
@@ -158,22 +144,18 @@ def concert_performances_record(event_id, mu_id):
     new_concert_performance.to_sql('concert_performances', db_conn, index=False,
             if_exists='append')
     db_conn.close()
-    #new_concert_performance.to_csv('must_data/concert_performances.csv',
-    #                              mode='a', index=False, header=False)
 
 
-def populate_all_concert_tables(sp_id, artist_name):
+def populate_songkick_tables(artist_name):
     # Get artist songkick id given the artist name
-    artist_id, artist_name2 = get_name_id(artist_name)
-    print(artist_id, artist_name2)
+    artist_id, artist_name = get_name_id(artist_name)
+    print(artist_id, artist_name)
     if artist_id:
-        create_musician_record(sp_id, artist_id, artist_name)
         # Get list of events from the artist
         events = get_event_ids(artist_id)
         if events:
             # Loop across all events
             for event in events:
-                print(event)
                 # return event id and populate table
                 event_id = create_concert_records(event)
                 if event_id:
@@ -184,13 +166,8 @@ def populate_all_concert_tables(sp_id, artist_name):
 
 
 if __name__ == "__main__":
-    # Create empty csv files
-    #create_empty_tables()
     # Read artists names
     #artists_names = ['Foals']
-    artists_names = open('raw_data/musicians.csv')
-    for row in artists_names:
-        row = row.split(',')
-        sp_id = row[0]
-        artist_name = row[1].strip()
-        populate_all_concert_tables(sp_id, artist_name)
+    artists_names = open('raw_data/artists_names.csv')
+    for artist_name in artists_names:
+        populate_songkick_tables(artist_name)
