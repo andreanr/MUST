@@ -11,21 +11,21 @@ load_dotenv(find_dotenv())
 # Assign KEYS
 TMDB_KEY = os.environ.get('TMDB_KEY')
 
+# PostgreSQL credentials
+PGDATABASE = os.environ.get('PGDATABASE')
+PGPASSWORD = os.environ.get('PGPASSWORD')
+PGUSER = os.environ.get('PGUSER')
+PGHOST = os.environ.get('PGHOST')
+
+engine = sqlalchemy.create_engine('postgresql://{user}:{password}@{host}/{database}'.format(
+                                  host = PGHOST,
+                                  database = PGDATABASE,
+                                  user = PGUSER,
+                                  password = PGPASSWORD))
+
 # 1. Get upcoming films
 # 2. Get the cast of those films
 # 3. Populate tables
-
-def create_empty_tables():
-    """Creates empty csv files with specified columns"""
-    
-    # New films
-    new_films = pd.DataFrame(columns=['mdb_id', 'release_date', 'title', 'description', 'url'])
-    new_films.to_csv('must_data/new_films.csv', index=False)
-    
-    # Link between films and movie artists
-    movie_releases = pd.DataFrame(columns=['mo_id', 'mdb_id'])
-    movie_releases.to_csv('must_data/movie_releases.csv', index=False)
-
 
 def get_upcoming_films():
     """
@@ -69,9 +69,12 @@ def create_upcoming_film_record(film):
 
     # Write a new music_release record
     upcoming_film = pd.DataFrame([upcoming_film],
-                             columns=['mdb_id', 'release_date', 'title', 'description', 'url'])
-    upcoming_film.to_csv('must_data/new_films.csv', mode='a',
-                         index=False, header=False)
+                                 columns=['mdb_id', 'release_date', 'title', 'description', 'url'])
+    
+    # upcoming_film.to_csv('must_data/new_films.csv', mode='a', index=False, header=False)
+    db_conn = engine.connect()
+    upcoming_film.to_sql('new_films', db_conn, index=False, if_exists='append')
+    db_conn.close()
 
     
 def create_upcoming_film_artists_records(movie_id):
@@ -84,8 +87,11 @@ def create_upcoming_film_artists_records(movie_id):
     directors = [member['id'] for member in cast['crew'] if member['job'] == 'Director']
     movie_artists = actors + directors
     movie_releases = pd.DataFrame({'mo_id': movie_artists, 'mdb_id': cast['id']})
-    movie_releases.to_csv('must_data/movie_releases.csv', mode='a',
-                          index=False, header=False)
+    
+    # movie_releases.to_csv('must_data/movie_releases.csv', mode='a', index=False, header=False)
+    db_conn = engine.connect()
+    movie_releases.to_sql('movie_releases', db_conn, index=False, if_exists='append')
+    db_conn.close()
 
 
 def populate_all_upcoming_films_tables():
@@ -100,3 +106,7 @@ def populate_all_upcoming_films_tables():
             create_upcoming_film_artists_records(film['id'])
     else:
         print('No upcoming films')
+
+if __name__ == "__main__":
+    populate_all_upcoming_films_tables()
+    

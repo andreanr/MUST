@@ -9,10 +9,8 @@ import sqlalchemy
 import os
 from dotenv import load_dotenv, find_dotenv
 
-
 # Load environment variables
 load_dotenv(find_dotenv())
-
 
 # Assign KEYS
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID')
