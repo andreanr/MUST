@@ -1,6 +1,7 @@
 import http.client
 import json
 import pandas as pd
+import sqlalchemy
 
 import os
 from dotenv import load_dotenv, find_dotenv
@@ -25,16 +26,16 @@ engine = sqlalchemy.create_engine('postgresql://{user}:{password}@{host}/{databa
 
 def get_popular_movie_artists():
     """Get the most popular artist objects from The Movie Database"""
-    
+
     movie_artists = list()
     for page in range(1,41):
         movie_artists.append(get_popular_movie_artists_page(page))
     movie_artists = [movie_artist for page in movie_artists for movie_artist in page]
-    return(movie_artists)    
+    return(movie_artists)
 
 def get_popular_movie_artists_page(page):
     """Get popular artist objects from The Movie Database, for a given page"""
-    
+
     conn = http.client.HTTPSConnection("api.themoviedb.org")
     payload = "{}"
     popular_url = "/3/person/popular?page=" + str(page) + "&language=en-US&region=US&api_key=" + TMDB_KEY
@@ -49,10 +50,10 @@ def create_popular_movie_artists_record(movie_artist):
     """
     Generate popular movie artist row, with its corresponding TMDB_id
     """
-    
+
     popular_movie_artist = {}
     popular_movie_artist['mo_id'] = movie_artist['id']
-    popular_movie_artist['name'] = movie_artist['name'] 
+    popular_movie_artist['name'] = movie_artist['name']
 
     # Write a new music_release record
     popular_movie_artist = pd.DataFrame([popular_movie_artist], columns=['mo_id', 'name'])
@@ -65,7 +66,7 @@ def populate_movie_artists_table():
     """
     Populate the catalog of famous actors/actress/directors
     """
-    
+
     movie_artists = get_popular_movie_artists()
     if movie_artists:
         # Loop across all events
