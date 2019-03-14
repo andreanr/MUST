@@ -107,7 +107,8 @@ def create_city_record(location):
     result = [r for r in result][0]
     if not result[0]:
         city_name = location['displayName']
-        country = create_country_record(location['country']['displayName'])
+        country = location['country']['displayName']
+        #country = create_country_record(location['country']['displayName'])
         new_location = pd.DataFrame([[city_id, city_name, country]],
                                      columns = ['city_id', 'city_name', 'country'])
         new_location.to_sql('city', db_conn, index=False, if_exists='append')
@@ -146,21 +147,19 @@ def concert_performances_record(event_id, mu_id):
     db_conn.close()
 
 
-def populate_songkick_tables(artist_name):
+def populate_songkick_tables(sk_id):
     # Get artist songkick id given the artist name
-    artist_id, artist_name = get_name_id(artist_name)
-    print(artist_id, artist_name)
-    if artist_id:
-        # Get list of events from the artist
-        events = get_event_ids(artist_id)
-        if events:
-            # Loop across all events
-            for event in events:
-                # return event id and populate table
-                event_id = create_concert_records(event)
-                if event_id:
-                    # Add a record to concert_performances table
-                    concert_performances_record(event_id, artist_id)
+    # artist_id, artist_name = get_name_id(artist_name)
+    # Get list of events from the artist
+    events = get_event_ids(sk_id)
+    if events:
+        # Loop across all events
+        for event in events:
+            # return event id and populate table
+            event_id = create_concert_records(event)
+            if event_id:
+                # Add a record to concert_performances table
+                concert_performances_record(event_id, sk_id)
     else:
         print('No event')
 
@@ -168,6 +167,11 @@ def populate_songkick_tables(artist_name):
 if __name__ == "__main__":
     # Read artists names
     #artists_names = ['Foals']
-    artists_names = open('raw_data/artists_names.csv')
-    for artist_name in artists_names:
-        populate_songkick_tables(artist_name)
+    db_conn = engine.connect()
+    results = db_conn.execute("SELECT sk_id FROM musicians")
+    db_conn.close()
+    sk_ids = [r[0] for r in results]
+    # artists_names = open('raw_data/artists_names.csv')
+    for sk_id in sk_ids:
+        print(sk_id)
+        populate_songkick_tables(sk_id)
