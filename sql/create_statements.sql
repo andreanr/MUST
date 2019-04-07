@@ -35,16 +35,18 @@ CREATE TABLE city (
 
 DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE users (
-	user_id text PRIMARY KEY,
+	username text PRIMARY KEY,
 	name text NOT NULL,
+        email text NOT NULL,
+        password text NOT NULL,
 	city_id int NOT NULL REFERENCES city(city_id)
 );
 
 DROP TABLE IF EXISTS movie_preference;
 CREATE TABLE movie_preference (
-	user_id text REFERENCES users(user_id),
+	username text REFERENCES users(username),
 	mo_id text REFERENCES movie_artists(mo_id),
-	PRIMARY KEY (user_id, mo_id)
+	PRIMARY KEY (username, mo_id)
 );
 
 DROP TABLE IF EXISTS new_music CASCADE;
@@ -104,7 +106,7 @@ CREATE TABLE concert_performances (
 
 DROP TABLE IF EXISTS music_preference;
 CREATE TABLE music_preference (
-	user_id text REFERENCES users(user_id),
+	username text REFERENCES users(username),
 	sp_id text REFERENCES musicians(sp_id),
-	PRIMARY KEY (user_id, sp_id)
+	PRIMARY KEY (username, sp_id)
 );
