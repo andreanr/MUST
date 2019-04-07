@@ -1,3 +1,4 @@
+import hashlib
 import pandas as pd
 import sqlalchemy
 
@@ -20,10 +21,14 @@ engine = sqlalchemy.create_engine('postgresql://{user}:{password}@{host}/{databa
                            user = PGUSER,
                            password = PGPASSWORD))
 
+def hash_password(password):
+    return hashlib.md5(password.encode('utf-8')).hexdigest()
 
 def populate_users_table():
     # read user table
     users = pd.read_csv('must_data/users.csv')
+    # hash password
+    users['password'] = users['password'].map(hash_password)
     music_preference = pd.read_csv('must_data/music_preference.csv')
     movie_preference = pd.read_csv('must_data/movie_preference.csv')
     # upload to sql
