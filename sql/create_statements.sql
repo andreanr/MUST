@@ -37,7 +37,7 @@ DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE users (
 	username text PRIMARY KEY,
 	name text NOT NULL,
-        email text NOT NULL,
+        email text UNIQUE NOT NULL,
         password text NOT NULL,
 	city_id int NOT NULL REFERENCES city(city_id)
 );
