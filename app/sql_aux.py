@@ -34,6 +34,18 @@ def validate_username(username):
     else:
         return True
 
+def validate_email(email):
+    db_conn = engine.connect()
+    cursor = db_conn.execute("SELECT exists(SELECT email FROM users WHERE email = '{}')".format(email))
+    db_conn.close()
+    record = cursor.fetchone()
+    print(record)
+    if record[0]:
+        return False
+    else:
+        return True
+
+
 def validate_login(username, password):
     query = """SELECT EXISTS(SELECT username FROM users
                             WHERE username = '{}'

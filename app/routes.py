@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from flask import (Flask, flash, redirect, render_template,
              request, session, redirect, url_for)
 from dotenv import load_dotenv, find_dotenv
-from app.sql_aux import validate_username, add_user, validate_login
+from app.sql_aux import (validate_username, add_user, validate_login, validate_email)
 
 from app import app
 
@@ -25,9 +25,6 @@ engine = create_engine('postgresql://{user}:{password}@{host}/{database}'.format
 
 
 @app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'GET':
@@ -35,7 +32,7 @@ def login():
     username = request.form['username']
     password = request.form['password']
     if validate_login(username, password):
-        return redirect(url_for('index'))
+        return redirect(url_for('homepage'))
     else:
         error = 'Invalid username/password'
         return render_template('login.html', error=error)
@@ -51,11 +48,20 @@ def register():
     email = request.form['email']
     password = request.form['password']
     city_id = request.form['city']
-    if validate_username(username):
+    if not validate_username(username):
+        error = 'Username already taken'
+        return render_template('register.html', error=error)
+    elif not validate_email(email):
+        error = 'Email already been used'
+        return render_template('register.html', error=error)
+    else:
         add_user(username, name, email, password, city_id)
         flash('User successfully registered')
         return redirect(url_for('login'))
-    else:
-        error = 'Username already taken'
-        return render_template('register.html', error=error)
 
+
+@app.route('/homepage')
+def homepage():
+    # TODO queries that gives a list of their artists / musicians and
+    # events/songs/movies coming
+    return render_template('homepage.html')
