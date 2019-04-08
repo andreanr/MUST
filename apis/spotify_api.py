@@ -1,6 +1,7 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import pandas as pd
+import sqlalchemy
 
 import os
 from dotenv import load_dotenv, find_dotenv
@@ -32,7 +33,7 @@ def create_authorized_spotify_object():
     """
     Generate a spotipy object with the authorized credentials to make requests
     """
-    
+
     client_credentials_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_ID,
                                                           client_secret=SPOTIFY_CLIENT_SECRET)
     sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
@@ -60,8 +61,8 @@ def create_music_release_record(music_release):
     # Write a new music_release record
     new_music_release = pd.DataFrame([new_music_release],
                              columns=['release_id', 'release_date', 'name', 'album_type', 'url'])
-    
-    # new_music_release.to_csv('must_data/new_music.csv', mode='a', index=False, header=False)
+
+    #new_music_release.to_csv('apis/must_data/new_music.csv', mode='a', index=False, header=False)
     db_conn = engine.connect()
     new_music_release.to_sql('new_music', db_conn, index=False, if_exists='append')
     db_conn.close()
@@ -71,28 +72,26 @@ def create_musician_release_records(music_release):
     Generate a tuple on the music_releases table for every musician that participates in a new release
     """
     musicians = [musician['id'] for musician in music_release['artists']]
-    music_releases = pd.DataFrame({'release_id': music_release['id'], 'mu_id': musicians})
-    
-    # music_releases.to_csv('must_data/music_releases.csv', mode='a', index=False, header=False)
+    existing_musicians = list()
+    for musician in musicians:
+        db_conn = engine.connect()
+        result = db_conn.execute("SELECT EXISTS(SELECT sp_id FROM musicians WHERE sp_id = '{}')".format(musician))
+        db_conn.close()
+        result = [r for r in result][0]
+        if result[0]:
+            existing_musicians.append(musician)
+    print(existing_musicians)
+
+    music_releases = pd.DataFrame({'release_id': music_release['id'], 'sp_id': existing_musicians})
+
+    #music_releases.to_csv('apis/must_data/music_releases.csv', mode='a', index=False, header=False)
     db_conn = engine.connect()
     music_releases.to_sql('music_releases', db_conn, index=False, if_exists='append')
-    db_conn.close()
-    
-def create_location_release_records(music_release):
-    """
-    Generate a tuple on the available_music table for each country where a new release is available
-    """
-    countries = music_release['available_markets']
-    available_music = pd.DataFrame({'release_id': music_release['id'], 'country': countries})
-    
-    #available_music.to_csv('must_data/available_music.csv', mode='a', index=False, header=False)
-    db_conn = engine.connect()
-    available_music.to_sql('available_music', db_conn, index=False, if_exists='append')
     db_conn.close()
 
 def populate_all_music_release_tables():
     """
-    Populate all the tables related to the music releases of the last week 
+    Populate all the tables related to the music releases of the last week
     """
     sp = create_authorized_spotify_object()
     music_releases = get_last_week_music_releases(sp)
@@ -102,7 +101,6 @@ def populate_all_music_release_tables():
             # return event id and populate table
             create_music_release_record(music_release)
             create_musician_release_records(music_release)
-            create_location_release_records(music_release)
     else:
         print('No music releases')
 
