@@ -1,6 +1,7 @@
 import http.client
 import json
 import pandas as pd
+import sqlalchemy
 
 import os
 from dotenv import load_dotenv, find_dotenv
@@ -55,14 +56,14 @@ def get_upcoming_film_cast(movie_id):
     cast = json.loads(upcoming_cast_data.decode('utf-8'))
     return(cast)
 
-    
+
 def create_upcoming_film_record(film):
     """
     Generate an upcoming film on the new_films table
     """
     upcoming_film = {}
     upcoming_film['mdb_id'] = film['id']
-    upcoming_film['release_date'] = film['release_date'] 
+    upcoming_film['release_date'] = film['release_date']
     upcoming_film['title'] = film['title']
     upcoming_film['description'] = film['overview']
     upcoming_film['url'] = 'https://www.themoviedb.org/movie/' + str(film['id'])
@@ -70,24 +71,34 @@ def create_upcoming_film_record(film):
     # Write a new music_release record
     upcoming_film = pd.DataFrame([upcoming_film],
                                  columns=['mdb_id', 'release_date', 'title', 'description', 'url'])
-    
+
     # upcoming_film.to_csv('must_data/new_films.csv', mode='a', index=False, header=False)
     db_conn = engine.connect()
     upcoming_film.to_sql('new_films', db_conn, index=False, if_exists='append')
     db_conn.close()
 
-    
+
 def create_upcoming_film_artists_records(movie_id):
     """
-    Generate a tuple on the movie_releases table for every actress/actor and director that participates in 
+    Generate a tuple on the movie_releases table for every actress/actor and director that participates in
     an upcoming film
     """
     cast = get_upcoming_film_cast(movie_id)
     actors = [actress['id'] for actress in cast['cast']]
     directors = [member['id'] for member in cast['crew'] if member['job'] == 'Director']
     movie_artists = actors + directors
-    movie_releases = pd.DataFrame({'mo_id': movie_artists, 'mdb_id': cast['id']})
-    
+
+    existing_movie_artists = list()
+    for movie_artist in movie_artists:
+        db_conn = engine.connect()
+        result = db_conn.execute("SELECT EXISTS(SELECT mo_id FROM movie_artists WHERE mo_id = '{}')".format(movie_artist))
+        db_conn.close()
+        result = [r for r in result][0]
+        if result[0]:
+            existing_movie_artists.append(movie_artist)
+
+    movie_releases = pd.DataFrame({'mo_id': existing_movie_artists, 'mdb_id': cast['id']})
+
     # movie_releases.to_csv('must_data/movie_releases.csv', mode='a', index=False, header=False)
     db_conn = engine.connect()
     movie_releases.to_sql('movie_releases', db_conn, index=False, if_exists='append')
@@ -109,4 +120,4 @@ def populate_all_upcoming_films_tables():
 
 if __name__ == "__main__":
     populate_all_upcoming_films_tables()
-    
+
