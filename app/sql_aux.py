@@ -1,4 +1,5 @@
 import hashlib
+import pandas as pd
 import os
 from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import create_engine
@@ -77,6 +78,39 @@ def musicians_list(username):
 
     with engine.connect() as db_conn:
         cursor = db_conn.execute(query)
-        record = cursor.fetchone()
-    print(record)
+        record = cursor.fetchall()
+    musicians = ", ".join([x[0] for x in record])
+    return musicians
 
+def movie_artists_list(username):
+    query = """SELECT name FROM movie_preference
+                NATURAL JOIN movie_artists
+                WHERE username = '{username}'""".format(username=username)
+
+    with engine.connect() as db_conn:
+        cursor = db_conn.execute(query)
+        record = cursor.fetchall()
+    movie_artists = ", ".join([x[0] for x in record])
+    return movie_artists
+
+
+def get_concerts(username):
+    query = """WITH music_pref_userx AS (
+                SELECT sk_id, username, m.name AS musician_name, city_id
+	            FROM users AS U
+	            NATURAL JOIN music_preference AS mp
+	            JOIN musicians AS m USING (sp_id)
+	            WHERE username = '{username}'
+            ) SELECT  musician_name, c.event_date, c.event_name,
+                        c.venue, city_name, country, url
+            FROM music_pref_userx AS u
+            JOIN concert_performances  AS cp  USING (sk_id)
+            JOIN concerts AS c
+  	        ON u.city_id = c.city_id AND c.event_id = cp.event_id
+            JOIN city ON c.city_id = city.city_id
+            ORDER BY event_date""".format(username=username)
+    with engine.connect() as db_conn:
+        cursor = db_conn.execute(query)
+    df = pd.DataFrame(cursor.fetchall())
+    df.columns = cursor.keys()
+    return df
