@@ -70,3 +70,13 @@ def add_user(username, name, email, password, city_id):
     with engine.connect() as db_conn:
         res = db_conn.execute(query)
 
+def musicians_list(username):
+    query = """SELECT name FROM music_preference
+                NATURAL JOIN musicians
+                WHERE username = '{username}'""".format(username=username)
+
+    with engine.connect() as db_conn:
+        cursor = db_conn.execute(query)
+        record = cursor.fetchone()
+    print(record)
+

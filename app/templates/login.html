@@ -6,6 +6,15 @@
 <div class="app-title">
 <h1> MUST </h1>
 </div>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <font size="2" color="red">{{ message }}</font>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
 <div class="login-form">
 <div class="control-group">
 				<input type="text" class="login-field" value="" placeholder="username" name="username">
