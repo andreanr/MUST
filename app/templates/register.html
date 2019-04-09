@@ -1,36 +1,40 @@
-        <link rel="stylesheet" href="/static/style.css" type="text/css">
-        <script src="/static/components.js"></script>
+<link rel="stylesheet" href="/static/style.css" type="text/css">
+<script src="/static/components.js"></script>
 {% block body %}
 <form action="/register" method="POST">
 <div class="login">
 <div class="login-screen">
-<div class="app-title">
-<h1> MUST </h1>
-<h3>Sign In</h3>
-</div>
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul class=flashes>
-    {% for message in messages %}
-      <font size="2" color="red">{{ message }}</font>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
+       <div class="app-title">
+       <h1> MUST </h1>
+       <h3>Sign In</h3>
+       </div>
+       {% with messages = get_flashed_messages() %}
+         {% if messages %}
+           <ul class=flashes>
+           {% for message in messages %}
+             <font size="2" color="red">{{ message }}</font>
+           {% endfor %}
+           </ul>
+         {% endif %}
+       {% endwith %}
 <div class="login-form">
-<div class="control-group">
-				<input type="text" class="login-field" value="" placeholder="username" name="username">
-<label class="login-field-icon fui-user" for="signin-username"></label></div>
-<div class="control-group">
-                                <input type="text" class="login-field" value="" placeholder="name" name="name">
-<label class="login-field-icon fui-user" for="signin-name"></label></div>
-<div class="control-group">
-                                <input type="text" class="login-field" value="" placeholder="email" name="email">
-<label class="login-field-icon fui-user" for="signin-name"></label></div>
-<div class="control-group">
-				<input type="password" class="login-field" value="" placeholder="password" name="password">
-<label class="login-field-icon fui-lock" for="signin-pass"></label></div>
-    <select class="ui search dropdown" multiple="" name="city" id="search-select">
+       <div class="control-group">
+              <input type="text" class="login-field" value="" placeholder="username" name="username">
+              <label class="login-field-icon fui-user" for="signin-username"></label>
+       </div>
+       <div class="control-group">
+              <input type="text" class="login-field" value="" placeholder="name" name="name">
+              <label class="login-field-icon fui-user" for="signin-name"></label>
+       </div>
+       <div class="control-group">
+              <input type="text" class="login-field" value="" placeholder="email" name="email">
+              <label class="login-field-icon fui-user" for="signin-name"></label>
+       </div>
+       <div class="control-group">
+	       <input type="password" class="login-field" value="" placeholder="password" name="password">
+              <label class="login-field-icon fui-lock" for="signin-pass"></label></div>
+       </div>
+       <select class="ui massive dropdown teal button" multiple="" name="city" id="search-select">
               <option value="165509">'s Hertogenbosch, Netherlands</option>
               <option value="94176">Aabenraa, Denmark</option>
               <option value="28429">Aachen, Germany</option>
@@ -1708,7 +1712,8 @@
               <option value="28872">Évreux, France</option>
               <option value="104871">Örebro, Sweden</option>
               <option value="56892">Östersund, Sweden</option>
-<label class="login-field-icon fui-lock" for="signin-city"></label>
+       </select>
+       <label class="login-field-icon fui-lock" for="signin-city"></label>
 <input type="submit" value="Sign in" class="btn btn-primary btn-large btn-block">
 
 </div>

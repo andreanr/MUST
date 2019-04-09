@@ -60,6 +60,7 @@ def validate_login(username, password):
     else:
         return False
 
+
 def add_user(username, name, email, password, city_id):
     query = """INSERT INTO users (username, name, email, password, city_id)
                  VALUES ('{username}', '{name}', '{email}', '{password}',
@@ -70,6 +71,7 @@ def add_user(username, name, email, password, city_id):
                                       city_id=city_id)
     with engine.connect() as db_conn:
         res = db_conn.execute(query)
+
 
 def musicians_list(username):
     query = """SELECT name FROM music_preference
@@ -159,3 +161,30 @@ def get_new_movies(username):
         return None
 
 
+def add_music_preference(username, sp_id):
+    query = """INSERT INTO music_preference (username, sp_id)
+                 VALUES ('{username}', '{sp_id}')""".format(username=username,
+                                                            sp_id=sp_id)
+    with engine.connect() as db_conn:
+        res = db_conn.execute(query)
+
+
+def delete_music_preference(username, sp_id):
+    query = "DELETE FROM music_preference WHERE username = '{}' AND sp_id = '{}';".format(username, sp_id)
+
+    with engine.connect() as db_conn:
+        res = db_conn.execute(query)
+
+
+def validate_musician(username, sp_id):
+    db_conn = engine.connect()
+    cursor = db_conn.execute(
+        "SELECT EXISTS (SELECT sp_id FROM music_preference WHERE username = '{}' AND sp_id = '{}')".format(username, sp_id)
+    )
+    db_conn.close()
+    record = cursor.fetchone()
+    print(record)
+    if record[0]:
+        return False
+    else:
+        return True
