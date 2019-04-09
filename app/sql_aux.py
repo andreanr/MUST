@@ -120,8 +120,8 @@ def get_concerts(username):
         cursor = db_conn.execute(query)
     df = pd.DataFrame(cursor.fetchall())
     if len(df) > 0:
-        df.columns = cursor.keys()
-        df['url'] = df['url'].map(url_html)
+        df.columns = ['Musician', 'Event Date', 'Event', 'Venue', 'City', 'Country', 'Url']
+        df['Url'] = df['Url'].map(url_html)
         return [df.to_html(classes='table', header="true", index=False, escape=False)]
     else:
         return None
@@ -141,8 +141,8 @@ def get_new_music(username):
         cursor = db_conn.execute(query)
     df = pd.DataFrame(cursor.fetchall())
     if len(df) > 0:
-        df.columns = cursor.keys()
-        df['url'] = df['url'].map(url_html)
+        df.columns = ['Musician', 'Release Date', 'Name', 'Type', 'Url']
+        df['Url'] = df['Url'].map(url_html)
         return [df.to_html(classes='table', header="true", index=False, escape=False)]
     else:
         return None
@@ -162,8 +162,8 @@ def get_new_movies(username):
         cursor = db_conn.execute(query)
     df = pd.DataFrame(cursor.fetchall())
     if len(df) > 0:
-        df.columns = cursor.keys()
-        df['url'] = df['url'].map(url_html)
+        df.columns = ['Artist', 'Release Date', 'Title', 'Description', 'Url']
+        df['Url'] = df['Url'].map(url_html)
         return [df.to_html(classes='table', header="true", index=False, escape=False)]
     else:
         return None
