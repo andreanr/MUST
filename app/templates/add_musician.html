@@ -19,9 +19,9 @@
        {% endwith %}
        <div class="login-form">
               <select class="ui massive dropdown teal button" multiple="" name="sp_id" id="search-select">
-                     <option value="6S2OmqARrzebs0tKUEyXyp">Demi Lovato</option>
-                     <option value="6eUKZXaKkcviH0Ku9w2n3V">Ed Sheeran</option>
-                     <option value="2cCUtGK9sDU2EoElnk0GNB">The National</option>
+                {% for id, musician in user_musicians_complement %}
+                  <option value={{ id }}>{{ musician }}</option>
+                {% endfor %}
               </select>
               <label class="login-field-icon fui-lock" for="signin-city"></label>
               <input type="submit" value="Add" class="btn btn-primary btn-large btn-block">

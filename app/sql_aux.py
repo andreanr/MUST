@@ -189,19 +189,6 @@ def delete_music_preference(username, sp_id):
         res = db_conn.execute(query)
 
 
-def validate_musician(username, sp_id):
-    db_conn = engine.connect()
-    cursor = db_conn.execute(
-        "SELECT EXISTS (SELECT sp_id FROM music_preference WHERE username = '{}' AND sp_id = '{}')".format(username, sp_id)
-    )
-    db_conn.close()
-    record = cursor.fetchone()
-    print(record)
-    if record[0]:
-        return False
-    else:
-        return True
-
 def get_user_musicians(username):
     db_conn = engine.connect()
     cursor = db_conn.execute(
@@ -209,8 +196,24 @@ def get_user_musicians(username):
         SELECT sp_id, name
         FROM musicians
         WHERE sp_id IN (SELECT sp_id FROM music_preference WHERE username = '{}')
+        ORDER BY name
         """.format(username)
     )
     db_conn.close()
     user_musicians = cursor.fetchall()
     return(user_musicians)
+
+
+def get_user_musicians_complement(username):
+    db_conn = engine.connect()
+    cursor = db_conn.execute(
+        """
+        SELECT sp_id, name
+        FROM musicians
+        WHERE sp_id NOT IN (SELECT sp_id FROM music_preference WHERE username = '{}')
+        ORDER BY name
+        """.format(username)
+    )
+    db_conn.close()
+    user_musicians_complement = cursor.fetchall()
+    return(user_musicians_complement)
