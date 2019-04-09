@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import create_engine
 
+pd.set_option('display.max_colwidth', -1)
 # Load environment variables
 load_dotenv(find_dotenv())
 
@@ -22,6 +23,10 @@ engine = create_engine('postgresql://{user}:{password}@{host}/{database}'.format
 
 def hash_password(password):
     return hashlib.md5(password.encode('utf-8')).hexdigest()
+
+
+def url_html(url):
+    return '<a href={url}>{url}</a>'.format(url = url)
 
 
 def validate_username(username):
@@ -115,8 +120,9 @@ def get_concerts(username):
         cursor = db_conn.execute(query)
     df = pd.DataFrame(cursor.fetchall())
     if len(df) > 0:
-        df.columns = cursor.keys()
-        return [df.to_html(classes='table', header="true", index=False)]
+        df.columns = ['Musician', 'Event Date', 'Event', 'Venue', 'City', 'Country', 'Url']
+        df['Url'] = df['Url'].map(url_html)
+        return [df.to_html(classes='table', header="true", index=False, escape=False)]
     else:
         return None
 
@@ -135,8 +141,9 @@ def get_new_music(username):
         cursor = db_conn.execute(query)
     df = pd.DataFrame(cursor.fetchall())
     if len(df) > 0:
-        df.columns = cursor.keys()
-        return [df.to_html(classes='table', header="true", index=False)]
+        df.columns = ['Musician', 'Release Date', 'Name', 'Type', 'Url']
+        df['Url'] = df['Url'].map(url_html)
+        return [df.to_html(classes='table', header="true", index=False, escape=False)]
     else:
         return None
 
@@ -155,8 +162,9 @@ def get_new_movies(username):
         cursor = db_conn.execute(query)
     df = pd.DataFrame(cursor.fetchall())
     if len(df) > 0:
-        df.columns = cursor.keys()
-        return [df.to_html(classes='table', header="true", index=False)]
+        df.columns = ['Artist', 'Release Date', 'Title', 'Description', 'Url']
+        df['Url'] = df['Url'].map(url_html)
+        return [df.to_html(classes='table', header="true", index=False, escape=False)]
     else:
         return None
 

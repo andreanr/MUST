@@ -1,6 +1,7 @@
 <link rel="stylesheet" href="/static/style.css" type="text/css">
 {% block body %}
 <form action="/homepage" method="POST">
+    <input type="button" value="Log out" onclick="window.location.href='{{ url_for( 'logout') }}';">
 <div class="homepage">
 <div class="login-screen">
 <div class="app-title">
