@@ -8,7 +8,7 @@ from dotenv import load_dotenv, find_dotenv
 from app.sql_aux import (validate_username, add_user, validate_login,
         validate_email, musicians_list, movie_artists_list, get_concerts,
         get_new_music, get_new_movies, add_music_preference, validate_musician,
-        delete_music_preference, get_user_musicians)
+        delete_music_preference, get_user_musicians, validate_user_fields)
 
 from app import app, login_manager
 
@@ -42,8 +42,8 @@ def load_user(user_id):
 def login():
     if request.method == 'GET':
         return render_template('login.html')
-    username = request.form['username']
-    password = request.form['password']
+    username = request.form.get('username', None)
+    password = request.form.get('password', None)
     if validate_login(username, password):
         flash('Logged in successfully.')
         login_user(User(username))
@@ -59,16 +59,19 @@ def register():
     if request.method == 'GET':
         return render_template('register.html')
     # Add to postgresql
-    username = request.form['username']
-    name = request.form['name']
-    email = request.form['email']
-    password = request.form['password']
-    city_id = request.form['city']
-    if not validate_username(username):
-        flash('Username already taken')
+    username = request.form.get('username', None)
+    name = request.form.get('name', None)
+    email = request.form.get('email', None)
+    password = request.form.get('password', None)
+    city_id = request.form.get('city', None)
+    if not validate_user_fields(username, name, email, password, city_id):
+        flash('** Please fill all fields')
+        return render_template('register.html')
+    elif not validate_username(username):
+        flash('** Username already taken')
         return render_template('register.html')
     elif not validate_email(email):
-        flash('Email already been used')
+        flash('** Email already been used')
         return render_template('register.html')
     else:
         add_user(username, name, email, password, city_id)

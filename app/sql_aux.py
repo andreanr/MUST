@@ -28,6 +28,11 @@ def hash_password(password):
 def url_html(url):
     return '<a href={url}>{url}</a>'.format(url = url)
 
+def validate_user_fields(username, name, email, password, city_id):
+    if (username) and (name) and (email) and (password) and (city_id):
+        return True
+    else:
+        return False
 
 def validate_username(username):
     db_conn = engine.connect()
