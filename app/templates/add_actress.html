@@ -1,0 +1,33 @@
+<link rel="stylesheet" href="/static/style.css" type="text/css">
+<script src="/static/components.js"></script>
+{% block body %}
+<form action="/add_actress" method="POST">
+<div class="login">
+<div class="login-screen">
+       <div class="app-title">
+              <h1> MUST </h1>
+              <h3>Add actor/actress</h3>
+       </div>
+       {% with messages = get_flashed_messages() %}
+         {% if messages %}
+           <ul class=flashes>
+           {% for message in messages %}
+             <font size="2" color="red">{{ message }}</font>
+           {% endfor %}
+           </ul>
+         {% endif %}
+       {% endwith %}
+       <div class="login-form">
+              <select class="ui massive dropdown teal button" multiple="" name="mo_id" id="search-select">
+                {% for id, actress in user_actresses_complement %}
+                  <option value={{ id }}>{{ actress }}</option>
+                {% endfor %}
+              </select>
+              <label class="login-field-icon fui-lock" for="signin-city"></label>
+              <input type="submit" value="Add" class="btn btn-primary btn-large btn-block">
+              <input type="button" value="Return Home" onclick="window.location.href='{{ url_for( 'homepage') }}';">
+       </div>
+</div>
+</div>
+</form>
+{% endblock %}

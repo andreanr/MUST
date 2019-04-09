@@ -231,3 +231,48 @@ def get_user_musicians_complement(username):
     db_conn.close()
     user_musicians_complement = cursor.fetchall()
     return(user_musicians_complement)
+
+
+def add_movie_preference(username, mo_id):
+    query = """INSERT INTO movie_preference (username, mo_id)
+                 VALUES ('{username}', '{mo_id}')""".format(username=username,
+                                                            mo_id=mo_id)
+    with engine.connect() as db_conn:
+        res = db_conn.execute(query)
+
+
+def delete_movie_preference(username, mo_id):
+    query = "DELETE FROM movie_preference WHERE username = '{}' AND mo_id = '{}';".format(username, mo_id)
+
+    with engine.connect() as db_conn:
+        res = db_conn.execute(query)
+
+
+def get_user_actresses(username):
+    db_conn = engine.connect()
+    cursor = db_conn.execute(
+        """
+        SELECT mo_id, name
+        FROM movie_artists
+        WHERE mo_id IN (SELECT mo_id FROM movie_preference WHERE username = '{}')
+        ORDER BY name
+        """.format(username)
+    )
+    db_conn.close()
+    user_actresses = cursor.fetchall()
+    return(user_actresses)
+
+
+def get_user_actresses_complement(username):
+    db_conn = engine.connect()
+    cursor = db_conn.execute(
+        """
+        SELECT mo_id, name
+        FROM movie_artists
+        WHERE mo_id NOT IN (SELECT mo_id FROM movie_preference WHERE username = '{}')
+        ORDER BY name
+        """.format(username)
+    )
+    db_conn.close()
+    user_actresses_complement = cursor.fetchall()
+    return(user_actresses_complement)

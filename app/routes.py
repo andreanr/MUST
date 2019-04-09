@@ -8,7 +8,8 @@ from dotenv import load_dotenv, find_dotenv
 from app.sql_aux import (validate_username, add_user, validate_login,
         validate_email, musicians_list, movie_artists_list, get_concerts,
         get_new_music, get_new_movies, add_music_preference, delete_music_preference,
-        get_user_musicians, get_user_musicians_complement, validate_user_fields, get_cities)
+        get_user_musicians, get_user_musicians_complement, validate_user_fields, get_cities,
+        add_movie_preference, delete_movie_preference, get_user_actresses, get_user_actresses_complement)
 
 from app import app, login_manager
 
@@ -131,6 +132,36 @@ def delete_musician():
         user_musicians = get_user_musicians(username)
         flash('Musician successfully deleted')
         return render_template('delete_musician.html', user_musicians=user_musicians)
+
+
+@login_required
+@app.route('/add_actress', methods=['GET', 'POST'])
+def add_actress():
+    if current_user.is_authenticated:
+        username = current_user.id
+        if request.method == 'GET':
+            user_actresses_complement = get_user_actresses_complement(username)
+            return render_template('add_actress.html', user_actresses_complement=user_actresses_complement)
+        mo_id = request.form['mo_id']
+        add_movie_preference(username, mo_id)
+        user_actresses_complement = get_user_actresses_complement(username)
+        flash('Actor/Actress successfully added')
+        return render_template('add_actress.html', user_actresses_complement=user_actresses_complement)
+
+
+@login_required
+@app.route('/delete_actress', methods=['GET', 'POST'])
+def delete_actress():
+    if current_user.is_authenticated:
+        username = current_user.id
+        if request.method == 'GET':
+            user_actresses = get_user_actresses(username)
+            return render_template('delete_actress.html', user_actresses=user_actresses)
+        mo_id = request.form['mo_id']
+        delete_movie_preference(username, mo_id)
+        user_actresses = get_user_actresses(username)
+        flash('Actor/Actress successfully deleted')
+        return render_template('delete_actress.html', user_actresses=user_actresses)
 
 
 @login_required

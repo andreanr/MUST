@@ -38,6 +38,8 @@
 <div class="app-title">
     <font size="3" color="grey">Favorite Actors:</font>
     <div><font size="3" color="grey">{{ movie_artists }}</font></div>
+    <input type="button" value="Add actor/actress" onclick="window.location.href='{{ url_for( 'add_actress') }}';">
+    <input type="button" value="Delete actor/actress" onclick="window.location.href='{{ url_for( 'delete_actress') }}';">
     <h3>Upcoming films:</h3>
     {% if new_movies_table %}
         {% for table in new_movies_table %}
