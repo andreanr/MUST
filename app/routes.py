@@ -8,7 +8,7 @@ from dotenv import load_dotenv, find_dotenv
 from app.sql_aux import (validate_username, add_user, validate_login,
         validate_email, musicians_list, movie_artists_list, get_concerts,
         get_new_music, get_new_movies, add_music_preference, validate_musician,
-        delete_music_preference)
+        delete_music_preference, get_user_musicians)
 
 from app import app, login_manager
 
@@ -119,13 +119,15 @@ def add_musician():
 @app.route('/delete_musician', methods=['GET', 'POST'])
 def delete_musician():
     if current_user.is_authenticated:
-        if request.method == 'GET':
-            return render_template('delete_musician.html')
         username = current_user.id
+        if request.method == 'GET':
+            user_musicians = get_user_musicians(username)
+            return render_template('delete_musician.html', user_musicians=user_musicians)
         sp_id = request.form['sp_id']
         delete_music_preference(username, sp_id)
+        user_musicians = get_user_musicians(username)
         flash('Musician successfully deleted')
-        return render_template('delete_musician.html')
+        return render_template('delete_musician.html', user_musicians=user_musicians)
 
 
 @login_required

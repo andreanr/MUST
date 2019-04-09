@@ -196,3 +196,16 @@ def validate_musician(username, sp_id):
         return False
     else:
         return True
+
+def get_user_musicians(username):
+    db_conn = engine.connect()
+    cursor = db_conn.execute(
+        """
+        SELECT sp_id, name
+        FROM musicians
+        WHERE sp_id IN (SELECT sp_id FROM music_preference WHERE username = '{}')
+        """.format(username)
+    )
+    db_conn.close()
+    user_musicians = cursor.fetchall()
+    return(user_musicians)
