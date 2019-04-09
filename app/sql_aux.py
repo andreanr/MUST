@@ -66,6 +66,20 @@ def validate_login(username, password):
         return False
 
 
+def get_cities():
+    db_conn = engine.connect()
+    cursor = db_conn.execute(
+        """
+        SELECT city_id, city_name || ', ' || country AS city_name
+        FROM city
+        ORDER BY city_name
+        """
+    )
+    db_conn.close()
+    cities = cursor.fetchall()
+    return(cities)
+
+
 def add_user(username, name, email, password, city_id):
     query = """INSERT INTO users (username, name, email, password, city_id)
                  VALUES ('{username}', '{name}', '{email}', '{password}',
