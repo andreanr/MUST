@@ -12,7 +12,7 @@
 <div class="login-screen">
 <div class="app-title">
     <div> <font size="3" color="grey">Favorite Musicians:</font></div>
-    <div><font size="2" color="grey">{{ musicians }}</font></div>
+    <div><font size="3" color="grey">{{ musicians }}</font></div>
     <input type="button" value="Add musicians" onclick="window.location.href='{{ url_for( 'add_musician') }}';">
     <input type="button" value="Delete musicians" onclick="window.location.href='{{ url_for( 'delete_musician') }}';">
     <h3>Upcoming concerts:</h3>
@@ -37,7 +37,7 @@
 <div class="login-screen">
 <div class="app-title">
     <font size="3" color="grey">Favorite Actors:</font>
-    <div><font size="2" color="grey">{{ movie_artists }}</font></div>
+    <div><font size="3" color="grey">{{ movie_artists }}</font></div>
     <h3>Upcoming films:</h3>
     {% if new_movies_table %}
         {% for table in new_movies_table %}
