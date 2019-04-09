@@ -1,0 +1,33 @@
+<link rel="stylesheet" href="/static/style.css" type="text/css">
+<script src="/static/components.js"></script>
+{% block body %}
+<form action="/delete_musician" method="POST">
+<div class="login">
+<div class="login-screen">
+       <div class="app-title">
+              <h1> MUST </h1>
+              <h3>Delete musician</h3>
+       </div>
+       {% with messages = get_flashed_messages() %}
+         {% if messages %}
+           <ul class=flashes>
+           {% for message in messages %}
+             <font size="2" color="red">{{ message }}</font>
+           {% endfor %}
+           </ul>
+         {% endif %}
+       {% endwith %}
+       <div class="login-form">
+              <select class="ui massive dropdown teal button" multiple="" name="sp_id" id="search-select">
+                     <option value="6S2OmqARrzebs0tKUEyXyp">Demi Lovato</option>
+                     <option value="6eUKZXaKkcviH0Ku9w2n3V">Ed Sheeran</option>
+                     <option value="2cCUtGK9sDU2EoElnk0GNB">The National</option>
+              </select>
+              <label class="login-field-icon fui-lock" for="signin-city"></label>
+              <input type="submit" value="Delete" class="btn btn-primary btn-large btn-block">
+              <input type="button" value="Return Home" onclick="window.location.href='{{ url_for( 'homepage') }}';">
+       </div>
+</div>
+</div>
+</form>
+{% endblock %}

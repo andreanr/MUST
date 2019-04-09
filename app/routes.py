@@ -7,7 +7,8 @@ from flask_login import current_user, login_user, logout_user, login_required, U
 from dotenv import load_dotenv, find_dotenv
 from app.sql_aux import (validate_username, add_user, validate_login,
         validate_email, musicians_list, movie_artists_list, get_concerts,
-        get_new_music, get_new_movies)
+        get_new_music, get_new_movies, add_music_preference, validate_musician,
+        delete_music_preference)
 
 from app import app, login_manager
 
@@ -74,6 +75,7 @@ def register():
         flash('User successfully registered')
         return redirect(url_for('login'))
 
+
 @login_required
 @app.route('/homepage')
 def homepage():
@@ -95,6 +97,36 @@ def homepage():
                                 new_movies_table=new_movies_table)
     else:
         return redirect(url_for('login'))
+
+
+@login_required
+@app.route('/add_musician', methods=['GET', 'POST'])
+def add_musician():
+    if current_user.is_authenticated:
+        if request.method == 'GET':
+            return render_template('add_musician.html')
+        username = current_user.id
+        sp_id = request.form['sp_id']
+        if not validate_musician(username, sp_id):
+            flash('Musician previously registered')
+            return render_template('add_musician.html')
+        else:
+            add_music_preference(username, sp_id)
+            flash('Musician successfully registered')
+            return render_template('add_musician.html')
+
+@login_required
+@app.route('/delete_musician', methods=['GET', 'POST'])
+def delete_musician():
+    if current_user.is_authenticated:
+        if request.method == 'GET':
+            return render_template('delete_musician.html')
+        username = current_user.id
+        sp_id = request.form['sp_id']
+        delete_music_preference(username, sp_id)
+        flash('Musician successfully deleted')
+        return render_template('delete_musician.html')
+
 
 @app.route('/logout/')
 @login_required
