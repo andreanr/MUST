@@ -128,8 +128,8 @@ def delete_musician():
         return render_template('delete_musician.html')
 
 
-@app.route('/logout/')
 @login_required
+@app.route('/logout')
 def logout():
     logout_user()
-    return "you are logged out"
+    return "You are logged out!"
