@@ -10,16 +10,37 @@
 </div>
 <div class="login-screen">
 <div class="app-title">
-    <font size="3" color="grey">Favorite Musicians:</font>
-    <font size="2" color="grey">{{ musicians }}</font>
-    {% for table in concerts_table %}
+    <div> <font size="3" color="grey">Favorite Musicians:</font></div>
+    <div><font size="2" color="grey">{{ musicians }}</font></div>
+    <h3>Concerts comming up:</h3>
+    {% if concerts_table %}
+        {% for table in concerts_table %}
             {{ table|safe }}
             {% endfor %}
+    {% else %}
+        <font size="3" color="grey">There are no concerts from your favorite artist :( </font><Paste>
+    {% endif %}
+    <h3>New Releases:</h3>
+    {% if new_music_table %}
+        {% for table in new_music_table %}
+            {{ table|safe }}
+            {% endfor %}
+    {% else %}
+        <font size="3" color="grey">No new music :( </font><Paste>
+    {% endif %}
 </div></div>
 <div class="login-screen">
 <div class="app-title">
     <font size="3" color="grey">Favorite Actors:</font>
-    <font size="2" color="grey">{{ movie_artists }}</font>
+    <div><font size="2" color="grey">{{ movie_artists }}</font></div>
+    <h3>Movies comming up:</h3>
+    {% if new_movies_table %}
+        {% for table in new_movies_table %}
+            {{ table|safe }}
+            {% endfor %}
+    {% else %}
+        <font size="3" color="grey">No movies coming up :( </font>
+    {% endif %}
 </div></div>
 </div>
 </form>

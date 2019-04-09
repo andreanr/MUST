@@ -6,7 +6,8 @@ from flask import (Flask, flash, redirect, render_template,
 from flask_login import current_user, login_user, logout_user, login_required, UserMixin
 from dotenv import load_dotenv, find_dotenv
 from app.sql_aux import (validate_username, add_user, validate_login,
-        validate_email, musicians_list, movie_artists_list, get_concerts)
+        validate_email, musicians_list, movie_artists_list, get_concerts,
+        get_new_music, get_new_movies)
 
 from app import app, login_manager
 
@@ -82,12 +83,16 @@ def homepage():
         username = current_user.id
         musicians = musicians_list(username)
         movie_artists = movie_artists_list(username)
-        concerts_df = get_concerts(username)
-        return render_template('homepage.html', name=username,
-                                                musicians=musicians,
-                                                movie_artists=movie_artists,
-                                                concerts_table=[concerts_df.to_html(classes='table',
-                                                    header="true", index=False)])
+        concerts_table = get_concerts(username)
+        new_music_table = get_new_music(username)
+        new_movies_table = get_new_movies(username)
+        return render_template('homepage.html',
+                                name=username,
+                                musicians=musicians,
+                                movie_artists=movie_artists,
+                                concerts_table=concerts_table,
+                                new_music_table=new_music_table,
+                                new_movies_table=new_movies_table)
     else:
         return redirect(url_for('login'))
 

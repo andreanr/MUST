@@ -80,6 +80,24 @@ margin-top: 12px;
 }
 
 
+table, th, td {
+  width: 100%;
+  table-layout: fixed;
+  overflow-wrap: break-word;
+  border-collapse: collapse;
+  padding: 15px;
+  border: 1px solid black;
+  font-family: "Roboto", sans-serif;
+  font-size: 11px;
+}
+th {
+  font-weight: bold;
+  text-align: center;
+}
+td:first-child {
+  font-weight: bold
+}
+
 select {
 text-align: center;
 background-color: #ECF0F1;

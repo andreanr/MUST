@@ -112,5 +112,50 @@ def get_concerts(username):
     with engine.connect() as db_conn:
         cursor = db_conn.execute(query)
     df = pd.DataFrame(cursor.fetchall())
-    df.columns = cursor.keys()
-    return df
+    if len(df) > 0:
+        df.columns = cursor.keys()
+        return [df.to_html(classes='table', header="true", index=False)]
+    else:
+        return None
+
+def get_new_music(username):
+    query="""WITH music_pref_userx AS (
+                SELECT sp_id, username, m.name AS musician_name
+                FROM music_preference AS mp
+	            JOIN musicians AS m USING (sp_id)
+	            WHERE username = '{username}'
+            ) SELECT  musician_name, m.release_date, m.name, m.album_type, url
+                FROM music_pref_userx AS u
+                JOIN  music_releases USING (sp_id)
+                JOIN new_music AS m USING (release_id)
+                ORDER BY release_date""".format(username=username)
+    with engine.connect() as db_conn:
+        cursor = db_conn.execute(query)
+    df = pd.DataFrame(cursor.fetchall())
+    if len(df) > 0:
+        df.columns = cursor.keys()
+        return [df.to_html(classes='table', header="true", index=False)]
+    else:
+        return None
+
+def get_new_movies(username):
+    query = """WITH actors_pref_userx AS (
+ 	            SELECT mo_id, username, m.name AS artist_name
+ 	            FROM movie_preference AS mp
+ 	            JOIN movie_artists AS m USING (mo_id)
+ 	            WHERE username = '{username}'
+             ) SELECT artist_name, release_date, title, description, url
+                FROM actors_pref_userx
+                JOIN movie_releases USING (mo_id)
+                JOIN new_films USING (mdb_id)
+                ORDER BY release_date""".format(username=username)
+    with engine.connect() as db_conn:
+        cursor = db_conn.execute(query)
+    df = pd.DataFrame(cursor.fetchall())
+    if len(df) > 0:
+        df.columns = cursor.keys()
+        return [df.to_html(classes='table', header="true", index=False)]
+    else:
+        return None
+
+
